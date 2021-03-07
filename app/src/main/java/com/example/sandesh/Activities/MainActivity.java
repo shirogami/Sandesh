@@ -229,22 +229,28 @@ public class MainActivity extends AppCompatActivity {
     }
 
 //    @Override
-//    protected void onPause() {
-//        super.onPause();
+//    protected void onStop() {
 //        String currentId = FirebaseAuth.getInstance().getUid();
 //        database.getReference().child("presence").child(currentId).setValue("Offline");
-//
+//        super.onStop();
 //    }
 
-    //    @Override
-//    protected void onStop() {
-//
-//
-//    }
+        @Override
+    protected void onPause() {
+        super.onPause();
+        String currentId = FirebaseAuth.getInstance().getUid();
+        database.getReference().child("presence").child(currentId).setValue("Offline");
+
+    }
+
 
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         switch (item.getItemId()) {
+            case R.id.groups :
+                startActivity(new Intent(MainActivity.this, GroupChatActivity.class));
+                break;
+
             case R.id.search :
                 Toast.makeText(this, "Search Clicked",
                         Toast.LENGTH_SHORT).show();

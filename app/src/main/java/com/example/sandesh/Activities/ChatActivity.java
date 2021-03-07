@@ -102,8 +102,6 @@ public class ChatActivity extends AppCompatActivity {
         String name = getIntent().getStringExtra("USER_NAME");
         String profile = getIntent().getStringExtra("USER_IMAGE");
 
-
-
         try {
             serverURL = new URL("https://meet.jit.si");
             ondefaultOptions = new JitsiMeetConferenceOptions.Builder()

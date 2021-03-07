@@ -1,10 +1,13 @@
  package com.example.sandesh.Adapters;
 
+import android.app.AlertDialog;
 import android.content.Context;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -29,6 +32,7 @@ public class MessageAdapter extends RecyclerView.Adapter{
 
     final int ITEM_SENT = 1;
     final int ITEM_RECIEVE = 2;
+    boolean isTouch = false;
 
     public MessageAdapter(Context context, ArrayList<Message> messages, String senderRoom, String recieverRoom) {
         this.context = context;
@@ -81,6 +85,8 @@ public class MessageAdapter extends RecyclerView.Adapter{
 
         };
 
+
+
         // code copied form https://github.com/pgreze/android-reactions
         ReactionsConfig config = new ReactionsConfigBuilder(context)
                 .withReactions(reactions)
@@ -115,6 +121,8 @@ public class MessageAdapter extends RecyclerView.Adapter{
         if(holder.getClass() == SentViewHolder.class) {
             SentViewHolder viewHolder = (SentViewHolder)holder;
 
+
+
             if(message.getMessage().equals("photo")) {
                 viewHolder.image_sent.setVisibility(View.VISIBLE);
                 viewHolder.message_sent.setVisibility(View.GONE );
@@ -133,10 +141,18 @@ public class MessageAdapter extends RecyclerView.Adapter{
                 viewHolder.feeling_sent.setVisibility(View.GONE);
             }
 
+
             viewHolder.message_sent.setOnTouchListener(new View.OnTouchListener() {
                 @Override
                 public boolean onTouch(View v, MotionEvent event) {
-                    popup.onTouch(v,event);
+                    if(event.getAction() == MotionEvent.ACTION_MOVE) {
+                        popup.onTouch(v,event);
+                        isTouch = true;
+                    }
+                    if(event.getAction()==MotionEvent.ACTION_UP){
+                        isTouch = false;
+                    }
+
                     return false;
                 }
             });
@@ -144,10 +160,78 @@ public class MessageAdapter extends RecyclerView.Adapter{
             viewHolder.image_sent.setOnTouchListener(new View.OnTouchListener() {
                 @Override
                 public boolean onTouch(View v, MotionEvent event) {
-                    popup.onTouch(v, event);
+                    popup.onTouch(v,event);
                     return false;
                 }
             });
+
+
+            viewHolder.message_sent.setOnLongClickListener(new View.OnLongClickListener() {
+                @Override
+                public boolean onLongClick(View v) {
+                    if (!isTouch) {
+                        View view = LayoutInflater.from(context).inflate(R.layout.delete_dialog, null);
+                        Button delete, everyone, cancel;
+                        AlertDialog dialog = new AlertDialog.Builder(context)
+                                .setTitle("Delete Message")
+                                .setView(R.layout.delete_dialog)
+                                .create();
+                        Log.d("TAG", "onLongClick: " + "Ashish");
+                        delete = view.findViewById(R.id.delete);
+                        everyone = view.findViewById(R.id.everyone);
+                        cancel = view.findViewById(R.id.cancel);
+
+                        dialog.setView(view);
+                        dialog.show();
+
+                        everyone.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                message.setMessage("This message is removed.");
+                                message.setFeeling(-1);
+                                FirebaseDatabase.getInstance().getReference()
+                                        .child("chats")
+                                        .child(senderRoom)
+                                        .child("messages")
+                                        .child(message.getMessageId()).setValue(message);
+
+                                FirebaseDatabase.getInstance().getReference()
+                                        .child("chats")
+                                        .child(recieverRoom)
+                                        .child("messages")
+                                        .child(message.getMessageId()).setValue(message);
+                                dialog.dismiss();
+                            }
+                        });
+
+                        delete.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                FirebaseDatabase.getInstance().getReference()
+                                        .child("chats")
+                                        .child(senderRoom)
+                                        .child("messages")
+                                        .child(message.getMessageId()).setValue(null);
+                                dialog.dismiss();
+                            }
+                        });
+
+                        cancel.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                dialog.dismiss();
+                            }
+                        });
+
+                        dialog.show();
+
+                    }
+                    return  true;
+                }
+            });
+
+
+
 
         }
         else{
@@ -175,7 +259,14 @@ public class MessageAdapter extends RecyclerView.Adapter{
             viewHolder.message_recieve.setOnTouchListener(new View.OnTouchListener() {
                 @Override
                 public boolean onTouch(View v, MotionEvent event) {
-                    popup.onTouch(v,event);
+                    if(event.getAction() == MotionEvent.ACTION_MOVE) {
+                        popup.onTouch(v,event);
+                        isTouch = true;
+                    }
+                    if(event.getAction()==MotionEvent.ACTION_UP){
+                        isTouch = false;
+                    }
+
                     return false;
                 }
             });
@@ -183,10 +274,78 @@ public class MessageAdapter extends RecyclerView.Adapter{
             viewHolder.image_recieve.setOnTouchListener(new View.OnTouchListener() {
                 @Override
                 public boolean onTouch(View v, MotionEvent event) {
-                    popup.onTouch(v, event);
+                    popup.onTouch(v,event);
                     return false;
                 }
             });
+
+            viewHolder.message_recieve.setOnLongClickListener(new View.OnLongClickListener() {
+                @Override
+                public boolean onLongClick(View v) {
+                    if (!isTouch) {
+                        View view = LayoutInflater.from(context).inflate(R.layout.delete_dialog, null);
+                        Button delete, everyone, cancel;
+                        delete = view.findViewById(R.id.delete);
+                        everyone = view.findViewById(R.id.everyone);
+                        cancel = view.findViewById(R.id.cancel);
+
+                        AlertDialog dialog = new AlertDialog.Builder(context)
+                                .setTitle("Delete Message")
+                                .setView(R.layout.delete_dialog)
+                                .create();
+
+                        dialog.setView(view);
+                        dialog.show();
+
+
+                        everyone.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                message.setMessage("This message is removed.");
+                                message.setFeeling(-1);
+                                FirebaseDatabase.getInstance().getReference()
+                                        .child("chats")
+                                        .child(senderRoom)
+                                        .child("messages")
+                                        .child(message.getMessageId()).setValue(message);
+
+                                FirebaseDatabase.getInstance().getReference()
+                                        .child("chats")
+                                        .child(recieverRoom)
+                                        .child("messages")
+                                        .child(message.getMessageId()).setValue(message);
+                                dialog.dismiss();
+                            }
+                        });
+
+                        delete.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                FirebaseDatabase.getInstance().getReference()
+                                        .child("chats")
+                                        .child(senderRoom)
+                                        .child("messages")
+                                        .child(message.getMessageId()).setValue(null);
+                                dialog.dismiss();
+                            }
+                        });
+
+                        cancel.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                dialog.dismiss();
+                            }
+                        });
+
+                        dialog.show();
+
+
+                    }
+                    return true;
+                }
+            });
+
+
         }
     }
 
